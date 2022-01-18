@@ -4,7 +4,7 @@ import HeaderLoggedOut from "./HeaderLoggedOut"
 import HeaderLoggedin from "./HeaderLoggedIn"
 
 function Header() {
-  const [loggedIn, setLoggedIn] = useState()
+  const [loggedIn, setLoggedIn] = useState(Boolean(localStorage.getItem("complexappToken")))
   return (
     <header className="header-bar bg-primary mb-3">
       <div className="container d-flex flex-column flex-md-row align-items-center p-3">
