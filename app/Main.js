@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useReducer } from "react"
 import ReactDOM from "react-dom"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Axios from "axios"
@@ -17,7 +17,23 @@ import FlashMessages from "./components/FlashMessages"
 import ExampleContext from "./ExampleContext"
 
 function Main() {
-  const [loggedIn, setLoggedIn] = useState(Boolean(localStorage.getItem("complexappToken")))
+  const initialState = {
+    loggedIn: Boolean(localStorage.getItem("complexappToken")),
+    flassMessages: []
+  }
+  function ourReducer(state, action) {
+    switch (action.type) {
+      case "login":
+        return { loggedIn: true, flashMessages: state.flashMessages }
+      case "logout":
+        return { loggedIn: false, flashMessages: state.flashMessages }
+      case "flassMessage":
+        return { loggedIn: state.loggedIn, flashMessage: state.flashMessages.concat(action.value) }
+    }
+  }
+  const [state, dispatch] = useReducer(ourReducer, initialState)
+
+  const [loggedIn, setLoggedIn] = useState()
   const [flashMessages, setFlashMessages] = useState([])
 
   function addFlashMessage(msg) {
