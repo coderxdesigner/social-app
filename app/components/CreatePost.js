@@ -14,7 +14,7 @@ function CreatePost(props) {
     try {
       const response = await Axios.post("/create-post", { title, body, token: localStorage.getItem("complexappToken") })
       navigate(`/post/${response.data}`)
-      appDispatch({ type: "flashMessage", value: "Congrats you created a new post!" })
+      appDispatch({ type: "flashMessages", value: "Congrats you created a new post!" })
     } catch (e) {
       console.log("error")
     }
