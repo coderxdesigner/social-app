@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import Page from "./Page"
 import Axios from "axios"
+import Loading from "./LoadingDotsIcon"
 
 function ViewSinglePost() {
   const { id } = useParams()
@@ -25,7 +26,7 @@ function ViewSinglePost() {
   if (isLoading)
     return (
       <Page title="Posts Loading">
-        <div>Loading...</div>
+        <Loading />
       </Page>
     )
   const date = new Date(post.createdDate)

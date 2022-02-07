@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
+import Loading from "./LoadingDotsIcon"
 
 import Axios from "axios"
 function ProfilePosts(props) {
@@ -18,7 +19,7 @@ function ProfilePosts(props) {
     }
     getPosts()
   }, [])
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) return <Loading />
   return (
     <div className="list-group">
       {posts.map(post => {
