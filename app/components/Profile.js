@@ -17,15 +17,19 @@ function Profile() {
     counts: { postCount: "", followerCount: "", followingCount: "" }
   })
   useEffect(() => {
+    const ourRequest = Axios.CancelToken.source()
     async function data() {
       try {
-        const response = await Axios.post(`/profile/${username}`, { token: appState.user.token })
+        const response = await Axios.post(`/profile/${username}`, { token: appState.user.token, cancelToken: ourRequest.token })
         setProfileData(response.data)
       } catch (e) {
         console.log("oops I did it again")
       }
     }
     data()
+    return () => {
+      ourRequest.cancel()
+    }
   }, [])
   return (
     <Page title="Profile Screen">

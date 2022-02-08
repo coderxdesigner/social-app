@@ -8,9 +8,11 @@ function ProfilePosts(props) {
   const [posts, setPosts] = useState([])
   const { username } = useParams()
   useEffect(() => {
+    const ourRequest = Axios.CancelToken.source()
+
     async function getPosts() {
       try {
-        const response = await Axios.get(`/profile/${username}/posts`)
+        const response = await Axios.get(`/profile/${username}/posts`, { cancelToken: ourRequest.token })
         setPosts(response.data)
         setIsLoading(false)
       } catch (e) {
@@ -18,6 +20,9 @@ function ProfilePosts(props) {
       }
     }
     getPosts()
+    return () => {
+      ourRequest.cancel()
+    }
   }, [])
   if (isLoading) return <Loading />
   return (
