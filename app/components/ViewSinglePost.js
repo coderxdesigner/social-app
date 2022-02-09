@@ -4,6 +4,7 @@ import Page from "./Page"
 import Axios from "axios"
 import Loading from "./LoadingDotsIcon"
 import ReactMarkdown from "react-markdown"
+import ReactTooltip from "react-tooltip"
 
 function ViewSinglePost() {
   const { id } = useParams()
@@ -43,12 +44,14 @@ function ViewSinglePost() {
         <div className="d-flex justify-content-between">
           <h2>{post.title}</h2>
           <span className="pt-2">
-            <Link to="#" className="text-primary mr-2" title="Edit">
+            <Link to={`/post/${post._id}/edit`} data-tip="Edit" data-for="edit" className="text-primary mr-2">
               <i className="fas fa-edit"></i>
             </Link>
-            <a className="delete-post-button text-danger" title="Delete">
+            <ReactTooltip id="edit" className="custom-tooltip" />{" "}
+            <Link to="" className="delete-post-button text-danger" data-tip="Delete" data-for="delete">
               <i className="fas fa-trash"></i>
-            </a>
+            </Link>
+            <ReactTooltip id="delete" className="custom-tooltip" />
           </span>
         </div>
 
@@ -60,7 +63,7 @@ function ViewSinglePost() {
         </p>
 
         <div className="body-content">
-          <ReactMarkdown children={post.body} allowElement={["p", "br", "strong", "em", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li"]} />
+          <ReactMarkdown children={post.body} allowElements={["p", "br", "strong", "em", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li"]} />
         </div>
       </div>
     </Page>
