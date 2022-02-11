@@ -48,6 +48,12 @@ function EditPost() {
       case "saveRequestDone":
         draft.isSaving = false
         return
+      case "titleRules":
+        if (!action.value.trim()) {
+          draft.title.hasErrors = true
+          draft.title.message = "You must provide a title"
+        }
+        return
     }
   }
   const [state, dispatch] = useImmerReducer(ourReducer, originalState)
@@ -107,7 +113,8 @@ function EditPost() {
           <label htmlFor="post-title" className="text-muted mb-1">
             <small>Title</small>
           </label>
-          <input onChange={e => dispatch({ type: "titleChange", value: e.target.value })} value={state.title.value} autoFocus name="title" id="post-title" className="form-control form-control-lg form-control-title" type="text" placeholder="" autoComplete="off" />
+          <input onBlur={e => dispatch({ type: "titleRules", value: e.target.value })} onChange={e => dispatch({ type: "titleChange", value: e.target.value })} value={state.title.value} autoFocus name="title" id="post-title" className="form-control form-control-lg form-control-title" type="text" placeholder="" autoComplete="off" />
+          {state.title.hasErrors && <div className="alert alert-danger small liveValidateMessage">{state.title.message}</div>}
         </div>
 
         <div className="form-group">
