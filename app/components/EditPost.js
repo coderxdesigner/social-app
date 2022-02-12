@@ -34,13 +34,17 @@ function EditPost() {
         draft.isFetching = false
         return
       case "titleChange":
+        draft.title.hasErrors = false
         draft.title.value = action.value
         return
       case "bodyChange":
+        draft.body.hasErrors = false
         draft.body.value = action.value
         return
       case "submitRequest":
-        draft.sendCount++
+        if (!draft.title.hasErrors && !draft.body.hasErrors) {
+          draft.sendCount++
+        }
         return
       case "saveRequestStarted":
         draft.isSaving = true
@@ -54,11 +58,20 @@ function EditPost() {
           draft.title.message = "You must provide a title"
         }
         return
+      case "bodyRules":
+        if (!action.value.trim()) {
+          draft.body.hasErrors = true
+          draft.body.message = "You must provide body content"
+        }
+        return
     }
   }
   const [state, dispatch] = useImmerReducer(ourReducer, originalState)
+
   function submitHandler(e) {
     e.preventDefault()
+    dispatch({ type: "titleRules", value: state.title.value })
+    dispatch({ type: "bodyRules", value: state.body.value })
     dispatch({ type: "submitRequest" })
   }
   useEffect(() => {
@@ -121,7 +134,8 @@ function EditPost() {
           <label htmlFor="post-body" className="text-muted mb-1 d-block">
             <small>Body Content</small>
           </label>
-          <textarea onChange={e => dispatch({ type: "bodyChange", value: e.target.value })} value={state.body.value} name="body" id="post-body" className="body-content tall-textarea form-control" type="text"></textarea>
+          <textarea onBlur={e => dispatch({ type: "bodyRules", value: e.target.value })} onChange={e => dispatch({ type: "bodyChange", value: e.target.value })} value={state.body.value} name="body" id="post-body" className="body-content tall-textarea form-control" type="text"></textarea>
+          {state.body.hasErrors && <div className="alert alert-danger small liveValidateMessage">{state.body.message}</div>}
         </div>
 
         <button className="btn btn-primary" disabled={state.isSaving}>
