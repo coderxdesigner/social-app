@@ -1,13 +1,15 @@
 import React, { useContext, useEffect, useState } from "react"
 import { useImmerReducer } from "use-immer"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import Page from "./Page"
 import Axios from "axios"
 import Loading from "./LoadingDotsIcon"
 import StateContext from "../StateContext"
 import DispatchContext from "../DispatchContext"
+import NotFound from "./NotFound"
 
 function EditPost() {
+  const navigate = useNavigate()
   const appState = useContext(StateContext)
   const appDispatch = useContext(DispatchContext)
   const originalState = {
@@ -24,7 +26,8 @@ function EditPost() {
     isFetching: true,
     isSaving: false,
     id: useParams().id,
-    sendCount: 0
+    sendCount: 0,
+    notFound: false
   }
   function ourReducer(draft, action) {
     switch (action.type) {
@@ -64,6 +67,8 @@ function EditPost() {
           draft.body.message = "You must provide body content"
         }
         return
+      case "notFound":
+        draft.notFound = true
     }
   }
   const [state, dispatch] = useImmerReducer(ourReducer, originalState)
@@ -80,7 +85,15 @@ function EditPost() {
       try {
         const response = await Axios.get(`/post/${state.id}`, { cancelToken: ourRequest.token })
         console.log(response.data)
-        dispatch({ type: "fetchComplete", value: response.data })
+        if (response.data) {
+          dispatch({ type: "fetchComplete", value: response.data })
+          if (appState.user.username != response.data.author.username) {
+            appDispatch({ type: "flashMessage", value: "You do not have the correct permissions to edit this post!" })
+            navigate("/")
+          }
+        } else {
+          dispatch({ type: "notFound" })
+        }
       } catch (e) {
         console.log("Ooops I did it again!")
       }
@@ -111,6 +124,9 @@ function EditPost() {
       }
     }
   }, [state.sendCount])
+  if (state.notFound) {
+    return <NotFound />
+  }
 
   if (state.isFetching)
     return (
@@ -121,7 +137,10 @@ function EditPost() {
 
   return (
     <Page title="Edit post">
-      <form onSubmit={submitHandler}>
+      <Link to={`/post/${state.id}`} className="small font-weight-bold">
+        &laquo; Back to Post
+      </Link>
+      <form className="mt-3" onSubmit={submitHandler}>
         <div className="form-group">
           <label htmlFor="post-title" className="text-muted mb-1">
             <small>Title</small>

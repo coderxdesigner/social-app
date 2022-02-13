@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import Loading from "./LoadingDotsIcon"
+import NotFound from "./NotFound"
 
 import Axios from "axios"
 function ProfilePosts(props) {
@@ -24,6 +25,7 @@ function ProfilePosts(props) {
       ourRequest.cancel()
     }
   }, [])
+
   if (isLoading) return <Loading />
   return (
     <div className="list-group">
