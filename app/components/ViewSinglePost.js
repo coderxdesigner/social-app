@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import Page from "./Page"
 import Axios from "axios"
 import Loading from "./LoadingDotsIcon"
@@ -7,9 +7,12 @@ import ReactMarkdown from "react-markdown"
 import ReactTooltip from "react-tooltip"
 import NotFound from "./NotFound"
 import StateContext from "../StateContext"
+import DispatchContext from "../DispatchContext"
 
 function ViewSinglePost() {
+  const navigate = useNavigate()
   const appState = useContext(StateContext)
+  const appDispatch = useContext(DispatchContext)
   const { id } = useParams()
   const [isLoading, setIsLoading] = useState(true)
   const [post, setPost] = useState()
@@ -48,6 +51,22 @@ function ViewSinglePost() {
     }
     return false
   }
+  async function deleteHandler() {
+    const areYouSure = window.confirm("Do you really want to delete this post?")
+    if (areYouSure) {
+      try {
+        const response = await Axios.delete(`/post/${id}`, { data: { token: appState.user.token } })
+        if (response.data == "Success") {
+          //1. display a flash message
+          appDispatch({ type: "flashMessage", value: "Post was successfully deleted." })
+          //2. redirect to current users profile
+          navigate(`/profile/${appState.user.username}`)
+        }
+      } catch (e) {
+        console.log("there was a problem")
+      }
+    }
+  }
   return (
     <Page title={post.title}>
       <div className="container container--narrow py-md-5">
@@ -59,7 +78,7 @@ function ViewSinglePost() {
                 <i className="fas fa-edit"></i>
               </Link>
               <ReactTooltip id="edit" className="custom-tooltip" />{" "}
-              <Link to="" className="delete-post-button text-danger" data-tip="Delete" data-for="delete">
+              <Link to="" onClick={deleteHandler} className="delete-post-button text-danger" data-tip="Delete" data-for="delete">
                 <i className="fas fa-trash"></i>
               </Link>
               <ReactTooltip id="delete" className="custom-tooltip" />
