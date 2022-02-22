@@ -39,6 +39,32 @@ function Profile() {
       ourRequest.cancel()
     }
   }, [])
+
+  useEffect(() => {
+    if (state.startFollowingRequestCount) {
+      setState(draft => {
+        draft.followActionLoading = true
+      })
+      const ourRequest = Axios.CancelToken.source()
+      async function data() {
+        try {
+          const response = await Axios.post(`/addFollow/${state.profileData.profileUsename}`, { token: appState.user.token, cancelToken: ourRequest.token })
+          setState(draft => {
+            draft.profileData.isFollowing = true
+            draft.profileData.counts.followerCount++
+            draft.followActionLoading = false
+          })
+        } catch (e) {
+          console.log("oops I did it again")
+        }
+      }
+      data()
+      return () => {
+        ourRequest.cancel()
+      }
+    }
+  }, [state.startFollowingRequestCount])
+
   function startFollowing() {
     setState(draft => {
       draft.startFollowingRequestCount++
