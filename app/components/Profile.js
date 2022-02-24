@@ -38,7 +38,7 @@ function Profile() {
     return () => {
       ourRequest.cancel()
     }
-  }, [])
+  }, [username])
 
   useEffect(() => {
     if (state.startFollowingRequestCount) {
@@ -49,6 +49,7 @@ function Profile() {
       async function data() {
         try {
           const response = await Axios.post(`/addFollow/${state.profileData.profileUsename}`, { token: appState.user.token, cancelToken: ourRequest.token })
+          console.log(response)
           setState(draft => {
             draft.profileData.isFollowing = true
             draft.profileData.counts.followerCount++
@@ -65,9 +66,39 @@ function Profile() {
     }
   }, [state.startFollowingRequestCount])
 
+  useEffect(() => {
+    if (state.stopFollowingRequestCount) {
+      setState(draft => {
+        draft.followActionLoading = true
+      })
+      const ourRequest = Axios.CancelToken.source()
+      async function data() {
+        try {
+          const response = await Axios.post(`/removeFollow/${state.profileData.profileUsename}`, { token: appState.user.token, cancelToken: ourRequest.token })
+          setState(draft => {
+            draft.profileData.isFollowing = false
+            draft.profileData.counts.followerCount--
+            draft.followActionLoading = false
+          })
+        } catch (e) {
+          console.log("oops I did it again")
+        }
+      }
+      data()
+      return () => {
+        ourRequest.cancel()
+      }
+    }
+  }, [state.stopFollowingRequestCount])
+
   function startFollowing() {
     setState(draft => {
       draft.startFollowingRequestCount++
+    })
+  }
+  function stopFollowing() {
+    setState(draft => {
+      draft.stopFollowingRequestCount++
     })
   }
   return (
@@ -77,6 +108,11 @@ function Profile() {
         {appState.loggedIn && !state.profileData.isFollowing && appState.user.username != state.profileData.profileUsename && state.profileData.profileUsername != "..." && (
           <button onClick={startFollowing} disabled={state.followActionLoading} className="btn btn-primary btn-sm ml-2">
             Follow <i className="fas fa-user-plus"></i>
+          </button>
+        )}
+        {appState.loggedIn && state.profileData.isFollowing && appState.user.username != state.profileData.profileUsename && state.profileData.profileUsername != "..." && (
+          <button onClick={stopFollowing} disabled={state.followActionLoading} className="btn btn-danger btn-sm ml-2">
+            Stop Following <i className="fas fa-user-times"></i>
           </button>
         )}
       </h2>
