@@ -1,12 +1,14 @@
 import React, { useEffect, useContext, useState } from "react"
 import Page from "./Page"
-import { useParams } from "react-router-dom"
+import { useParams, NavLink, Routes, Route } from "react-router-dom"
 import Axios from "axios"
 import StateContext from "../StateContext"
 import { useImmer } from "use-immer"
 
 //components
 import ProfilePosts from "./ProfilePosts"
+import ProfileFollowers from "./ProfileFollowers"
+import ProfileFollowing from "./ProfileFollowing"
 
 function Profile() {
   const { username } = useParams()
@@ -16,12 +18,13 @@ function Profile() {
     startFollowingRequestCount: 0,
     stopFollowingRequestCount: 0,
     profileData: {
-      profileUsename: "",
+      profileUsename: "...",
       profileAvatar: "https://gravatar.com/avatar/placeholder?s=120",
       isFollowing: false,
       counts: { postCount: "", followerCount: "", followingCount: "" }
     }
   })
+
   useEffect(() => {
     const ourRequest = Axios.CancelToken.source()
     async function data() {
@@ -48,8 +51,8 @@ function Profile() {
       const ourRequest = Axios.CancelToken.source()
       async function data() {
         try {
-          const response = await Axios.post(`/addFollow/${state.profileData.profileUsename}`, { token: appState.user.token, cancelToken: ourRequest.token })
-          console.log(response)
+          const response = await Axios.post(`/addFollow/${state.profileData.profileUsername}`, { token: appState.user.token, cancelToken: ourRequest.token })
+
           setState(draft => {
             draft.profileData.isFollowing = true
             draft.profileData.counts.followerCount++
@@ -74,7 +77,7 @@ function Profile() {
       const ourRequest = Axios.CancelToken.source()
       async function data() {
         try {
-          const response = await Axios.post(`/removeFollow/${state.profileData.profileUsename}`, { token: appState.user.token, cancelToken: ourRequest.token })
+          const response = await Axios.post(`/removeFollow/${state.profileData.profileUsername}`, { token: appState.user.token, cancelToken: ourRequest.token })
           setState(draft => {
             draft.profileData.isFollowing = false
             draft.profileData.counts.followerCount--
@@ -117,17 +120,21 @@ function Profile() {
         )}
       </h2>
       <div className="profile-nav nav nav-tabs pt-2 mb-4">
-        <a href="#" className="active nav-item nav-link">
+        <NavLink to="" end className="nav-item nav-link">
           Posts: {state.profileData.counts.postCount}
-        </a>
-        <a href="#" className="nav-item nav-link">
+        </NavLink>
+        <NavLink to="followers" className="nav-item nav-link">
           Followers: {state.profileData.counts.followerCount}
-        </a>
-        <a href="#" className="nav-item nav-link">
+        </NavLink>
+        <NavLink to="following" className="nav-item nav-link">
           Following: {state.profileData.counts.followingCount}
-        </a>
+        </NavLink>
       </div>
-      <ProfilePosts />
+      <Routes>
+        <Route path="" element={<ProfilePosts />} />
+        <Route path="followers" element={<ProfileFollowers />} />
+        <Route path="following" element={<ProfileFollowing />} />
+      </Routes>
     </Page>
   )
 }
