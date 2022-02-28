@@ -29,14 +29,16 @@ function ProfileFollowers(props) {
   if (isLoading) return <Loading />
   return (
     <div className="list-group">
-      {posts.map((follower, index) => {
-        return (
-          <Link key={index} to={`/profile/${follower.username}`} className="list-group-item list-group-item-action">
-            <img className="avatar-tiny" src={follower.avatar} />
-            {follower.username}
-          </Link>
-        )
-      })}
+      {posts.length &&
+        posts.map((follower, index) => {
+          return (
+            <Link key={index} to={`/profile/${follower.username}`} className="list-group-item list-group-item-action">
+              <img className="avatar-tiny" src={follower.avatar} />
+              {follower.username}
+            </Link>
+          )
+        })}
+      {!posts.length && <div>No followers yet, say something witty and make new friends!</div>}
     </div>
   )
 }
