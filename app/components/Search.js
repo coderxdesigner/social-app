@@ -90,7 +90,7 @@ function Search() {
                   <strong>Search Results</strong> ({state.results.length} {state.results.length > 1 ? " items " : " item "} found)
                 </div>
                 {state.results.map(post => {
-                  return <Post post={post} key={post._id} />
+                  return <Post onClick={()=> appDispatch({type:"closeSearch"})} post={post} key={post._id} />
                 })}
               </div>
             )}{" "}
