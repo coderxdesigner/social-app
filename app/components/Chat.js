@@ -1,10 +1,37 @@
-import React, { useEffect, useContext } from "react"
+import React, { useEffect, useContext, useRef } from "react"
 import StateContext from "../StateContext"
 import DispatchContext from "../DispatchContext"
+import { useImmer } from "use-immer"
 
 function Chat() {
+  const chatField = useRef(null)
   const appState = useContext(StateContext)
   const appDispatch = useContext(DispatchContext)
+  const [state, setState] = useImmer({
+    fieldValue: "",
+    chatMessages: []
+  })
+  useEffect(() => {
+    if (appState.isChatOpen) {
+      chatField.current.focus()
+    }
+  }, [appState.isChatOpen])
+  function handleFieldChange(e) {
+    const value = e.target.value
+    setState(draft => {
+      draft.fieldValue = value
+    })
+  }
+  function handleSubmit(e) {
+    e.preventDefault()
+    //send message to chat server
+
+    setState(draft => {
+      draft.chatMessages.push({ message: draft.fieldValue, username: appState.user.username, avatar: appState.user.avatar })
+      draft.fieldValue = ""
+      //add message to state collection of messages
+    })
+  }
   return (
     <div id="chat-wrapper" className={"chat-wrapper shadow border-top border-left border-right " + (appState.isChatOpen ? "chat-wrapper--is-visible" : "")}>
       <div className="chat-title-bar bg-primary">
@@ -19,29 +46,36 @@ function Chat() {
         </span>
       </div>
       <div id="chat" className="chat-log">
-        <div className="chat-self">
-          <div className="chat-message">
-            <div className="chat-message-inner">Hey, how are you?</div>
-          </div>
-          <img className="chat-avatar avatar-tiny" src="https://gravatar.com/avatar/b9408a09298632b5151200f3449434ef?s=128" />
-        </div>
-
-        <div className="chat-other">
-          <a href="#">
-            <img className="avatar-tiny" src="https://gravatar.com/avatar/b9216295c1e3931655bae6574ac0e4c2?s=128" />
-          </a>
-          <div className="chat-message">
-            <div className="chat-message-inner">
+        {state.chatMessages.map((message, index) => {
+          if (message.username == appState.user.username) {
+            return (
+              <div key={index} className="chat-self">
+                <div className="chat-message">
+                  <div className="chat-message-inner">{message.message}</div>
+                </div>
+                <img className="chat-avatar avatar-tiny" src={message.avatar} />
+              </div>
+            )
+          }
+          return (
+            <div className="chat-other">
               <a href="#">
-                <strong>barksalot:</strong>
+                <img className="avatar-tiny" src="https://gravatar.com/avatar/b9216295c1e3931655bae6574ac0e4c2?s=128" />
               </a>
-              Hey, I am good, how about you?
+              <div className="chat-message">
+                <div className="chat-message-inner">
+                  <a href="#">
+                    <strong>barksalot:</strong>
+                  </a>
+                  Hey, I am good, how about you?
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )
+        })}
       </div>
-      <form id="chatForm" className="chat-form border-top">
-        <input type="text" className="chat-field" id="chatField" placeholder="Type a message…" autoComplete="off" />
+      <form id="chatForm" className="chat-form border-top" onSubmit={handleSubmit}>
+        <input value={state.fieldValue} ref={chatField} onChange={handleFieldChange} type="text" className="chat-field" id="chatField" placeholder="Type a message…" autoComplete="off" />
       </form>
     </div>
   )
