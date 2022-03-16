@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Page from "./Page"
 import Axios from "axios"
 import { useImmerReducer } from "use-immer"
@@ -42,14 +42,32 @@ function HomeGuest() {
         }
         return
       case "usernameAfterDelay":
+        if (draft.username.value.length < 3) {
+          draft.username.hasErrors = true
+          draft.username.message = "Username must be longer than 3 characters."
+        }
+        if (!draft.hasErrors) {
+          draft.username.checkCount++
+        }
         return
       case "usernameUniqueResults":
+        if (action.value) {
+          draft.username.hasErrors = true
+          draft.username.isUnique = false
+          draft.username.message = "Username already exists."
+        } else {
+          draft.username.isUnique = true
+        }
         return
       case "emailImmediately":
         draft.email.hasErrors = false
         draft.email.value = action.value
         return
       case "emailAfterDelay":
+        if (/^\S+@\S+$/.test(draft.email.value)) {
+          draft.email.hasErrors = true
+          draft.email.message = "You must use a valid email address."
+        }
         return
       case "emailUniqueResults":
         return
@@ -64,9 +82,48 @@ function HomeGuest() {
     }
   }
   const [state, dispatch] = useImmerReducer(ourReducer, initialState)
+
+  useEffect(() => {
+    if (state.username.value) {
+      const delay = setTimeout(() => dispatch({ type: "usernameAfterDelay" }), 800)
+      return () => clearTimeout(delay)
+    }
+  }, [state.username.value])
+
+  useEffect(() => {
+    if (state.email.value) {
+      const delay = setTimeout(() => dispatch({ type: "emailAfterDelay" }), 800)
+      return () => clearTimeout(delay)
+    }
+  }, [state.email.value])
+
+  useEffect(() => {
+    if (state.password.value) {
+      const delay = setTimeout(() => dispatch({ type: "passwordAfterDelay" }), 800)
+      return () => clearTimeout(delay)
+    }
+  }, [state.password.value])
+
   function handleSubmit(e) {
     e.preventDefault()
   }
+
+  useEffect(() => {
+    if (state.username.checkCount) {
+      //send axios request here!!
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/doesUsernameExist", { username: state.username.value }, { cancelToken: ourRequest.token })
+          dispatch({ type: "usernameUniqueResults", value: response.data })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.username.checkCount])
 
   return (
     <Page title="Welcome" wide={true}>
