@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Page from "./Page"
 import Axios from "axios"
 import { useImmerReducer } from "use-immer"
 import { CSSTransition } from "react-transition-group"
+import DispatchContext from "../DispatchContext"
 
 function HomeGuest() {
+  const appDispatch = useContext(DispatchContext)
   const initialState = {
     username: {
       value: "",
@@ -46,7 +48,7 @@ function HomeGuest() {
           draft.username.hasErrors = true
           draft.username.message = "Username must be longer than 3 characters."
         }
-        if (!draft.hasErrors) {
+        if (!draft.hasErrors && !action.noRequest) {
           draft.username.checkCount++
         }
         return
@@ -64,20 +66,41 @@ function HomeGuest() {
         draft.email.value = action.value
         return
       case "emailAfterDelay":
-        if (/^\S+@\S+$/.test(draft.email.value)) {
+        if (!/^\S+@\S+$/.test(draft.email.value)) {
           draft.email.hasErrors = true
           draft.email.message = "You must use a valid email address."
         }
+        if (!draft.email.hasErrors && !action.noRequest) {
+          draft.email.checkCount++
+        }
         return
       case "emailUniqueResults":
+        if (action.value) {
+          draft.email.hasErrors = true
+          draft.email.isUnique = false
+          draft.email.message = "That email is already being used."
+        } else {
+          draft.email.isUnique = true
+        }
         return
       case "passwordImmediately":
         draft.password.hasErrors = false
         draft.password.value = action.value
+        if (draft.password.value.length > 50) {
+          draft.password.hasErrors = true
+          draft.password.message = "Password cannot exceed 50 characters."
+        }
         return
       case "passwordAfterDelay":
+        if (draft.password.value.length < 12) {
+          draft.password.hasErrors = true
+          draft.password.message = "Password must be at least 12 characters."
+        }
         return
       case "submitForm":
+        if (!draft.username.hasErrors && draft.username.isUnique && !draft.email.hasErrors && draft.email.isUnique && !draft.password.hasErrors) {
+          draft.submitCount++
+        }
         return
     }
   }
@@ -106,7 +129,32 @@ function HomeGuest() {
 
   function handleSubmit(e) {
     e.preventDefault()
+    dispatch({ type: "usernameImmediately", value: state.username.value })
+    dispatch({ type: "usernameAfterDelay", value: state.username.value, noRequest: true })
+    dispatch({ type: "emailImmediately", value: state.email.value })
+    dispatch({ type: "emailAfterDelay", value: state.email.value, noRequest: true })
+    dispatch({ type: "passwordImmediately", value: state.password.value })
+    dispatch({ type: "passwordAfterDelay", value: state.password.value })
+    dispatch({ type: "submitForm" })
   }
+
+  useEffect(() => {
+    if (state.submitCount) {
+      //send axios request here!!
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/register", { username: state.username.value }, { email: state.email.value }, { password: state.password.value }, { cancelToken: ourRequest.token })
+          appDispatch({ type: "login", data: response.data })
+          appDispatch({ type: "flashMessage", value: "Congrats! Welcome to your new account!" })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.submitCount])
 
   useEffect(() => {
     if (state.username.checkCount) {
@@ -124,6 +172,23 @@ function HomeGuest() {
       return () => ourRequest.cancel()
     }
   }, [state.username.checkCount])
+
+  useEffect(() => {
+    if (state.email.checkCount) {
+      //send axios request here!!
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/doesEmailExist", { email: state.email.value }, { cancelToken: ourRequest.token })
+          dispatch({ type: "emailUniqueResults", value: response.data })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.email.checkCount])
 
   return (
     <Page title="Welcome" wide={true}>
@@ -168,6 +233,9 @@ function HomeGuest() {
                 placeholder="you@example.com"
                 autoComplete="off"
               />
+              <CSSTransition in={state.email.hasErrors} timeout={330} classNames="liveValidateMessage" unmountOnExit>
+                <div className="alert alert-danger small liveValidateMessage">{state.email.message}</div>
+              </CSSTransition>
             </div>
             <div className="form-group">
               <label htmlFor="password-register" className="text-muted mb-1">
@@ -183,6 +251,9 @@ function HomeGuest() {
                 type="password"
                 placeholder="Create a password"
               />
+              <CSSTransition in={state.password.hasErrors} timeout={330} classNames="liveValidateMessage" unmountOnExit>
+                <div className="alert alert-danger small liveValidateMessage">{state.password.message}</div>
+              </CSSTransition>
             </div>
             <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
               Sign up for ComplexApp
