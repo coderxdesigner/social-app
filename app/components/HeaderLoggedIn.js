@@ -9,6 +9,7 @@ function HeaderLoggedIn(props) {
   const appState = useContext(StateContext)
   function handleLogout() {
     appDispatch({ type: "logout" })
+    appDispatch({ type: "flashMessage", value: "You have successfully logged out" })
   }
   function handleSearchIcon(e) {
     e.preventDefault()
