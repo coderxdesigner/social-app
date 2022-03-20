@@ -83,6 +83,27 @@ function Main() {
       localStorage.removeItem("complexappAvatar")
     }
   }, [state.loggedIn])
+
+  useEffect(() => {
+    if (state.loggedIn) {
+      //send axios request here!!
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/checkToken", { token: state.user.token }, { cancelToken: ourRequest.token })
+          if (!response.data) {
+            appDispatch({ type: "logout" })
+            appDispatch({ type: "flashMessage", value: "Your session has logged out, please log in again." })
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [])
+
   return (
     <StateContext.Provider value={state}>
       <DispatchContext.Provider value={dispatch}>
