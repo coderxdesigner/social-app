@@ -5,6 +5,8 @@
   "main": "test.js",
   "scripts": {
     "dev": "webpack serve",
+    "webpackBuild": "webpack",
+    "previewDist": "node previewDist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,6 +18,12 @@
     "@babel/preset-react": "^7.16.7",
     "axios": "^0.24.0",
     "babel-loader": "^8.2.3",
+    "clean-webpack-plugin": "^4.0.0",
+    "dotenv-webpack": "^7.1.0",
+    "express": "^4.17.3",
+    "fs-extra": "^10.0.1",
+    "html-webpack-harddisk-plugin": "^2.0.0",
+    "html-webpack-plugin": "^5.5.0",
     "immer": "^9.0.12",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
